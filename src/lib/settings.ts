@@ -21,13 +21,27 @@ export interface Branding {
   brandName: string;
 }
 
+const DEFAULT_BRANDING: Branding = {
+  primary: null,
+  logoUrl: null,
+  brandName: DEFAULT_BRAND_NAME,
+};
+
 export async function getBranding(): Promise<Branding> {
-  const s = await getSettings();
-  return {
-    primary: s.brandPrimary || null,
-    logoUrl: s.logoUrl || null,
-    brandName: s.brandName?.trim() || DEFAULT_BRAND_NAME,
-  };
+  // Branding is read by the root layout on every route, so it runs during
+  // build-time prerendering (e.g. /_not-found) where the DB may be unreachable,
+  // and on every request. It's purely cosmetic, so never let a DB error break
+  // rendering — fall back to the built-in defaults.
+  try {
+    const s = await getSettings();
+    return {
+      primary: s.brandPrimary || null,
+      logoUrl: s.logoUrl || null,
+      brandName: s.brandName?.trim() || DEFAULT_BRAND_NAME,
+    };
+  } catch {
+    return DEFAULT_BRANDING;
+  }
 }
 
 export async function getSkillTags(): Promise<string[]> {
