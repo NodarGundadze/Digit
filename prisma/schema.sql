@@ -94,6 +94,9 @@ CREATE TABLE "PlatformSettings" (
     "maxImagesPerTicket" INTEGER NOT NULL DEFAULT 5,
     "maxImageSizeMb" INTEGER NOT NULL DEFAULT 10,
     "skillTags" TEXT NOT NULL DEFAULT '[]',
+    "brandPrimary" TEXT,
+    "logoUrl" TEXT,
+    "brandName" TEXT,
     "updatedAt" DATETIME NOT NULL
 );
 

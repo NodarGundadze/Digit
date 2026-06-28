@@ -108,6 +108,9 @@ model PlatformSettings {
   maxImagesPerTicket       Int      @default(5)
   maxImageSizeMb           Int      @default(10)
   skillTags                String   @default("[]") // JSON string[]
+  brandPrimary             String? // "#rrggbb" brand color; null = built-in indigo
+  logoUrl                  String? // https or data: URL; null = wrench icon
+  brandName                String? // wordmark text; null = "Dig-IT"
   updatedAt                DateTime @updatedAt
 }
 

@@ -13,6 +13,23 @@ export async function getSettings() {
   });
 }
 
+export const DEFAULT_BRAND_NAME = "Dig-IT";
+
+export interface Branding {
+  primary: string | null; // null = built-in indigo palette
+  logoUrl: string | null; // null = wrench icon
+  brandName: string;
+}
+
+export async function getBranding(): Promise<Branding> {
+  const s = await getSettings();
+  return {
+    primary: s.brandPrimary || null,
+    logoUrl: s.logoUrl || null,
+    brandName: s.brandName?.trim() || DEFAULT_BRAND_NAME,
+  };
+}
+
 export async function getSkillTags(): Promise<string[]> {
   const s = await getSettings();
   try {

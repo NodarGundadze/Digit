@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { getBranding } from "@/lib/settings";
 import { roleHome, type Role } from "@/lib/types";
 import { AuthBrand } from "@/components/auth/AuthBrand";
 import { FONT_MONO, FONT_SANS } from "@/components/auth/authStyles";
@@ -11,6 +12,8 @@ export default async function AuthLayout({
 }) {
   const user = await getCurrentUser();
   if (user) redirect(roleHome(user.role as Role));
+
+  const { logoUrl, brandName } = await getBranding();
 
   return (
     <div
@@ -27,7 +30,7 @@ export default async function AuthLayout({
         color: "#1c2030",
       }}
     >
-      <AuthBrand />
+      <AuthBrand logoUrl={logoUrl} brandName={brandName} />
       {children}
       <p
         style={{
@@ -38,7 +41,7 @@ export default async function AuthLayout({
           color: "#aab0c0",
         }}
       >
-        DIG-IT OPERATIONS PLATFORM © 2026
+        {brandName.toUpperCase()} OPERATIONS PLATFORM © 2026
       </p>
     </div>
   );

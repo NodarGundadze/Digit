@@ -24,6 +24,9 @@ import {
   XCircle,
   Search,
   FileWarning,
+  Palette,
+  Image as ImageIcon,
+  Upload,
 } from "lucide-react";
 import type { UserDTO, DisputeDTO, DisputeStatus } from "@/lib/types";
 import type { AuditEntry } from "@/lib/queries";
@@ -35,6 +38,7 @@ import {
   resolveDispute,
   setUserStatus,
   setWorkerLevel,
+  updateBranding,
   updateSettings,
   updateSkillTags,
   vetTechnician,
@@ -65,6 +69,12 @@ export interface AdminSettings {
   maxImageSizeMb: number;
 }
 
+export interface AdminBranding {
+  brandPrimary: string; // "" = default palette
+  logoUrl: string; // "" = wrench icon
+  brandName: string; // "" = "Dig-IT"
+}
+
 interface AlarmRow {
   id: string;
   title: string;
@@ -72,7 +82,13 @@ interface AlarmRow {
   minutes: number;
 }
 
-type Tab = "overview" | "users" | "disputes" | "audit" | "settings";
+type Tab =
+  | "overview"
+  | "users"
+  | "disputes"
+  | "audit"
+  | "settings"
+  | "branding";
 
 export default function AdminDashboard({
   selfId,
@@ -81,6 +97,7 @@ export default function AdminDashboard({
   alarms,
   staleTickets,
   settings,
+  branding,
   skillTags,
   disputes,
   audit,
@@ -91,6 +108,7 @@ export default function AdminDashboard({
   alarms: AlarmRow[];
   staleTickets: AlarmRow[];
   settings: AdminSettings;
+  branding: AdminBranding;
   skillTags: string[];
   disputes: DisputeDTO[];
   audit: AuditEntry[];
@@ -128,6 +146,9 @@ export default function AdminDashboard({
           <TabBtn active={tab === "settings"} onClick={() => setTab("settings")}>
             <SettingsIcon className="w-4 h-4" /> Settings
           </TabBtn>
+          <TabBtn active={tab === "branding"} onClick={() => setTab("branding")}>
+            <Palette className="w-4 h-4" /> Branding
+          </TabBtn>
         </div>
       </div>
 
@@ -145,6 +166,7 @@ export default function AdminDashboard({
       {tab === "disputes" && <DisputesTab disputes={disputes} />}
       {tab === "audit" && <AuditTab audit={audit} />}
       {tab === "settings" && <SettingsTab settings={settings} skillTags={skillTags} />}
+      {tab === "branding" && <BrandingTab branding={branding} />}
     </div>
   );
 }
@@ -941,6 +963,178 @@ function SettingsTab({
           </div>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function BrandingTab({ branding }: { branding: AdminBranding }) {
+  const [primary, setPrimary] = useState(branding.brandPrimary);
+  const [logoUrl, setLogoUrl] = useState(branding.logoUrl);
+  const [brandName, setBrandName] = useState(branding.brandName);
+  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<{ pending: boolean; msg: string | null }>({
+    pending: false,
+    msg: null,
+  });
+
+  const swatch = primary || "#4f46e5";
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 256 * 1024) {
+      setError("Image must be under 256KB. Use a smaller logo or paste a URL.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogoUrl(String(reader.result));
+      setError(null);
+    };
+    reader.onerror = () => setError("Couldn't read that file.");
+    reader.readAsDataURL(file);
+  };
+
+  const save = async () => {
+    setError(null);
+    setState({ pending: true, msg: null });
+    const r = await updateBranding({ brandPrimary: primary, logoUrl, brandName });
+    setState({ pending: false, msg: r.ok ? "Saved. Refresh to see it everywhere." : null });
+    if (!r.ok) setError(r.error || "Failed");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <Card title="Brand color" icon={<Palette className="w-4 h-4 text-indigo-500" />}>
+          <div className="space-y-3">
+            <p className="text-xs text-slate-400">
+              The primary color used across buttons, links, highlights, and the
+              logo mark. Shades are derived automatically.
+            </p>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={swatch}
+                onChange={(e) => setPrimary(e.target.value)}
+                className="h-10 w-14 rounded-lg border border-slate-300 bg-white p-1 cursor-pointer"
+                aria-label="Brand color"
+              />
+              <input
+                value={primary}
+                onChange={(e) => setPrimary(e.target.value)}
+                placeholder="#4f46e5 (default)"
+                className={inputCls}
+              />
+              {primary && (
+                <button
+                  type="button"
+                  onClick={() => setPrimary("")}
+                  className="text-xs text-slate-500 hover:text-slate-700 whitespace-nowrap"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex items-center justify-center text-xs font-semibold text-white rounded-lg px-3 py-2"
+                style={{ background: swatch }}
+              >
+                Sample button
+              </span>
+              <span className="text-xs font-semibold" style={{ color: swatch }}>
+                Sample link
+              </span>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="Brand name" icon={<SettingsIcon className="w-4 h-4 text-indigo-500" />}>
+          <input
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            placeholder="Dig-IT"
+            maxLength={40}
+            className={inputCls}
+          />
+          <p className="text-xs text-slate-400 mt-2">
+            Shown in the header, auth screens, footer, and browser tab.
+          </p>
+        </Card>
+      </div>
+
+      <div className="space-y-4">
+        <Card title="Logo" icon={<ImageIcon className="w-4 h-4 text-indigo-500" />}>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-14 w-14 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0">
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={logoUrl}
+                    alt="Logo preview"
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <span
+                    className="flex items-center justify-center h-9 w-9 rounded-lg text-white"
+                    style={{ background: swatch }}
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg px-3 py-2 cursor-pointer w-fit">
+                  <Upload className="w-3.5 h-3.5" /> Upload image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onFile}
+                    className="hidden"
+                  />
+                </label>
+                {logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setLogoUrl("")}
+                    className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 w-fit"
+                  >
+                    <X className="w-3.5 h-3.5" /> Remove logo
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1">…or paste an image URL</p>
+              <input
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                placeholder="https://example.com/logo.svg"
+                className={inputCls}
+              />
+            </div>
+            <p className="text-xs text-slate-400">
+              Uploads must be under 256KB. Leave empty to use the default mark.
+            </p>
+          </div>
+        </Card>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={save}
+            disabled={state.pending}
+            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg px-4 py-2"
+          >
+            {state.pending && <Loader2 className="w-4 h-4 animate-spin" />}
+            Save branding
+          </button>
+          {error && <span className="text-xs text-red-600">{error}</span>}
+          {state.msg && <span className="text-xs text-slate-500">{state.msg}</span>}
+        </div>
+      </div>
     </div>
   );
 }

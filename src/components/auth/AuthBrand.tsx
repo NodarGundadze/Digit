@@ -1,8 +1,14 @@
 import { Wrench } from "lucide-react";
-import { FONT_MONO, FONT_SANS } from "./authStyles";
+import { ACCENT_GRADIENT, FONT_MONO, FONT_SANS } from "./authStyles";
 
-// The Dig-IT wordmark that sits above the auth card (from the Auth design).
-export function AuthBrand() {
+// The wordmark that sits above the auth card (from the Auth design).
+export function AuthBrand({
+  logoUrl,
+  brandName = "Dig-IT",
+}: {
+  logoUrl?: string | null;
+  brandName?: string;
+}) {
   return (
     <div
       style={{
@@ -13,20 +19,30 @@ export function AuthBrand() {
         marginBottom: 30,
       }}
     >
-      <span
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 16,
-          background: "linear-gradient(150deg,#5a40f0,#4429d6)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 10px 24px -6px rgba(74,45,214,0.5)",
-        }}
-      >
-        <Wrench style={{ width: 26, height: 26, color: "#fff" }} />
-      </span>
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={brandName}
+          style={{ height: 56, width: "auto", objectFit: "contain", borderRadius: 16 }}
+        />
+      ) : (
+        <span
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 16,
+            background: ACCENT_GRADIENT,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow:
+              "0 10px 24px -6px color-mix(in srgb, var(--color-indigo-700) 50%, transparent)",
+          }}
+        >
+          <Wrench style={{ width: 26, height: 26, color: "#fff" }} />
+        </span>
+      )}
       <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.05 }}>
         <span
           style={{
@@ -37,7 +53,7 @@ export function AuthBrand() {
             color: "#181b27",
           }}
         >
-          Dig-IT
+          {brandName}
         </span>
         <span
           style={{

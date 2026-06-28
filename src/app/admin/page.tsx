@@ -18,6 +18,7 @@ import {
 import LiveRefresh from "@/components/LiveRefresh";
 import AdminDashboard, {
   type AdminAnalytics,
+  type AdminBranding,
   type AdminSettings,
 } from "@/components/admin/AdminDashboard";
 
@@ -96,6 +97,12 @@ export default async function AdminPage() {
     maxImageSizeMb: settings.maxImageSizeMb,
   };
 
+  const branding: AdminBranding = {
+    brandPrimary: settings.brandPrimary ?? "",
+    logoUrl: settings.logoUrl ?? "",
+    brandName: settings.brandName ?? "",
+  };
+
   return (
     <>
       <LiveRefresh intervalMs={4000} />
@@ -106,6 +113,7 @@ export default async function AdminPage() {
         alarms={alarms}
         staleTickets={staleTickets}
         settings={adminSettings}
+        branding={branding}
         skillTags={skillTags}
         disputes={disputes}
         audit={audit}
