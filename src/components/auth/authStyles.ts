@@ -4,8 +4,10 @@ import type { CSSProperties } from "react";
 
 export const FONT_SANS = "var(--font-gantari), system-ui, sans-serif";
 export const FONT_MONO = "var(--font-space-mono), monospace";
-export const ACCENT_GRADIENT = "linear-gradient(150deg,#5a40f0,#4429d6)";
-export const ACCENT_LINK = "#4f33ea";
+// Accent colors follow the admin-chosen brand color via the indigo tokens.
+export const ACCENT_GRADIENT =
+  "linear-gradient(150deg, var(--color-indigo-500), var(--color-indigo-700))";
+export const ACCENT_LINK = "var(--color-indigo-600)";
 
 export const card: CSSProperties = {
   width: "100%",
@@ -76,7 +78,8 @@ export const submit: CSSProperties = {
   fontWeight: 700,
   fontSize: 16,
   cursor: "pointer",
-  boxShadow: "0 12px 26px -10px rgba(74,45,214,0.6)",
+  boxShadow:
+    "0 12px 26px -10px color-mix(in srgb, var(--color-indigo-700) 60%, transparent)",
   transition: "transform .18s ease, box-shadow .18s ease",
 };
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { requireAdmin, revalidateAll } from "@/lib/server-utils";
@@ -175,6 +176,66 @@ export async function updateSettings(input: SettingsInput): Promise<ActionResult
       `Commission ${commissionPct}%, min job $${minJobPrice}, rebroadcast ${unclaimedAlarmMinutes}m, manager no-response ${managerNoResponseMinutes}m, max ${maxImagesPerTicket} imgs / ${maxImageSizeMb}MB.`
     );
     revalidateAll();
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export interface BrandingInput {
+  brandPrimary: string; // "" clears -> default palette
+  logoUrl: string; // "" clears -> wrench icon
+  brandName: string; // "" clears -> "Dig-IT"
+}
+
+// ~500KB ceiling: data-URL logos live in the settings row, so keep them small.
+const MAX_LOGO_LENGTH = 700_000;
+
+export async function updateBranding(input: BrandingInput): Promise<ActionResult> {
+  try {
+    const admin = await requireAdmin();
+
+    const primary = input.brandPrimary.trim();
+    if (primary && !/^#[0-9a-f]{6}$/i.test(primary))
+      return { ok: false, error: "Color must be a 6-digit hex like #4f46e5." };
+
+    const name = input.brandName.trim();
+    if (name.length > 40)
+      return { ok: false, error: "Brand name must be 40 characters or fewer." };
+
+    const logo = input.logoUrl.trim();
+    if (logo) {
+      const isValid =
+        /^https?:\/\//i.test(logo) || /^data:image\//i.test(logo);
+      if (!isValid)
+        return { ok: false, error: "Logo must be an http(s) URL or an uploaded image." };
+      if (logo.length > MAX_LOGO_LENGTH)
+        return { ok: false, error: "Logo image is too large. Use one under ~500KB." };
+    }
+
+    const data = {
+      brandPrimary: primary || null,
+      logoUrl: logo || null,
+      brandName: name || null,
+    };
+
+    await prisma.platformSettings.upsert({
+      where: { id: "singleton" },
+      update: data,
+      create: { id: "singleton", skillTags: "[]", ...data },
+    });
+    await audit(
+      admin.id,
+      admin.name,
+      "update_branding",
+      "settings",
+      "singleton",
+      `Branding updated — color ${primary || "default"}, logo ${
+        logo ? "set" : "default"
+      }, name ${name || "default"}.`
+    );
+    // Branding is global (root layout + every shell), so refresh the whole tree.
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
