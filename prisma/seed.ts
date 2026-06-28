@@ -8,7 +8,8 @@ import { PrismaLibSql } from "@prisma/adapter-libsql";
 import bcrypt from "bcryptjs";
 
 const url = process.env.DATABASE_URL || "file:./dev.db";
-const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url }) });
+const authToken = process.env.TURSO_AUTH_TOKEN;
+const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url, authToken }) });
 
 const DEMO_PASSWORD = "demo1234";
 
