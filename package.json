@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push && tsx prisma/seed.ts",
     "db:setup-remote": "tsx scripts/setup-remote-db.ts && tsx prisma/seed.ts",
+    "db:migrate-branding": "tsx scripts/migrate-remote-branding.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
