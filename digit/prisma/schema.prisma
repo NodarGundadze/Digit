@@ -1,0 +1,139 @@
+// Dig-IT data model. SQLite via Prisma 7 (no native enums on SQLite -> string unions,
+// matching the original app's string-literal types). Arrays/objects stored as JSON strings.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String // 'customer' | 'worker' | 'admin'
+  phone        String?
+  avatarUrl    String?
+  status       String   @default("active") // 'active' | 'suspended'
+  createdAt    DateTime @default(now())
+
+  workerProfile   WorkerProfile?
+  tasksAsCustomer Task[]         @relation("CustomerTasks")
+  tasksAsTech     Task[]         @relation("TechTasks")
+}
+
+model WorkerProfile {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags               String    @default("[]") // JSON string[]
+  bio                String    @default("")
+  vetStatus          String    @default("pending") // 'pending' | 'vetted' | 'rejected'
+  level              String    @default("technician") // 'technician' | 'manager'
+  rating             Float     @default(0)
+  completedJobsCount Int       @default(0)
+  vettedById         String?
+  vettedAt           DateTime?
+  curLat             Float?
+  curLng             Float?
+  curAddress         String?
+  curUpdatedAt       DateTime?
+}
+
+model Task {
+  id                      String    @id @default(cuid())
+  customerId              String
+  customer                User      @relation("CustomerTasks", fields: [customerId], references: [id])
+  customerName            String
+  customerPhone           String?
+  title                   String
+  description             String
+  photoUrl                String
+  tags                    String    @default("[]") // JSON string[]
+  status                  String    @default("submitted")
+  price                   Float
+  originalPrice           Float?
+  initialPriceStatus      String? // 'pending_approval' | 'approved' | 'rejected'
+  initialPriceReason      String?
+  assignedTechnicianId    String?
+  assignedTech            User?     @relation("TechTasks", fields: [assignedTechnicianId], references: [id])
+  assignedTechnicianName  String?
+  assignedTechnicianPhone String?
+  locLat                  Float
+  locLng                  Float
+  locAddress              String
+  routeHistory            String    @default("[]") // JSON {lat,lng,timestamp}[]
+  rating                  Float?
+  feedback                String?
+  createdAt               DateTime  @default(now())
+  broadcastedAt           DateTime?
+
+  logs         TaskLog[]
+  scopeRequest ScopeRequest?
+  disputes     Dispute[]
+}
+
+model TaskLog {
+  id            String   @id @default(cuid())
+  taskId        String
+  task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  status        String
+  note          String
+  timestamp     DateTime @default(now())
+  updatedById   String
+  updatedByName String
+}
+
+model ScopeRequest {
+  id                String   @id @default(cuid())
+  taskId            String   @unique
+  task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  requestedNewPrice Float
+  requestedNewTime  String
+  reason            String
+  status            String   @default("pending_manager") // pending_manager | pending_client | approved | rejected
+  createdAt         DateTime @default(now())
+}
+
+model PlatformSettings {
+  id                       String   @id @default("singleton")
+  commissionPct            Float    @default(15)
+  minJobPrice              Float    @default(20)
+  unclaimedAlarmMinutes    Int      @default(30) // doubles as the worker rebroadcast timer
+  managerNoResponseMinutes Int      @default(15)
+  maxImagesPerTicket       Int      @default(5)
+  maxImageSizeMb           Int      @default(10)
+  skillTags                String   @default("[]") // JSON string[]
+  updatedAt                DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorName  String
+  action     String
+  targetType String?
+  targetId   String?
+  detail     String?
+  createdAt  DateTime @default(now())
+}
+
+model Dispute {
+  id             String    @id @default(cuid())
+  taskId         String
+  task           Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  raisedById     String
+  raisedByName   String
+  raisedByRole   String // 'customer' | 'worker'
+  reason         String
+  status         String    @default("open") // 'open' | 'resolved' | 'dismissed'
+  resolution     String?
+  resolvedById   String?
+  resolvedByName String?
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+}

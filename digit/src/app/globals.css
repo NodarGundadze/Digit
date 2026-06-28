@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #f8fafc; /* slate-50 */
+  color: #1e293b; /* slate-800 */
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Thin custom scrollbars to match the dashboard feel */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* ---- Auth screens (imported from the Dig-IT Auth design) ---- */
+/* Pseudo-states inline styles can't express, scoped to the auth shell. */
+.auth-scope ::selection {
+  background: #d8d2ff;
+}
+.auth-scope input::placeholder,
+.auth-scope textarea::placeholder {
+  color: #aab0c0;
+}
+.auth-scope input:focus,
+.auth-scope textarea:focus {
+  outline: none;
+  border-color: #6a4ff0 !important;
+  box-shadow: 0 0 0 4px rgba(106, 79, 240, 0.13) !important;
+  background: #fff !important;
+}
+.auth-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px -10px rgba(74, 45, 214, 0.72);
+}
+.auth-submit:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px -10px rgba(74, 45, 214, 0.6);
+}
+.auth-submit:disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
+}
+/* Subtle press feedback for the role / skill / demo chips. */
+.auth-press:hover {
+  transform: translateY(-1px);
+}
+.auth-press:active {
+  transform: translateY(0);
+}
