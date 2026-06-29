@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { Gantari, Space_Mono } from "next/font/google";
 import {
@@ -60,21 +61,51 @@ const FEATURES = [
   },
 ];
 
-export default function LandingPage() {
+// Brand-colored values, expressed once as local CSS vars. Each points at the
+// runtime `--brand-*` scale (set on <html> from the admin color) with the
+// design's original hex as the fallback — so the page recolors when an admin
+// picks a color, and stays pixel-identical to the default purple when they
+// haven't. See AGENTS.md / globals.css for the indigo→brand token wiring.
+const brandVars = {
+  "--lp-grad":
+    "linear-gradient(150deg, var(--brand-600,#5a40f0), var(--brand-700,#4429d6))",
+  "--lp-grad-cta":
+    "linear-gradient(150deg, var(--brand-600,#5733f2) 0%, var(--brand-700,#4022e0) 100%)",
+  "--lp-accent": "var(--brand-600,#4f33ea)",
+  "--lp-tint": "var(--brand-50,#ece9ff)",
+} as CSSProperties;
+
+export default function LandingPage({
+  logoUrl,
+  brandName = "Dig-IT",
+}: {
+  logoUrl?: string | null;
+  brandName?: string;
+}) {
   return (
     <div
+      style={brandVars}
       className={`${gantari.className} min-h-screen bg-white text-[#1c2030] antialiased`}
     >
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-[#eceff5] bg-[rgba(247,248,251,0.82)] [backdrop-filter:saturate(180%)_blur(12px)]">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-6 py-4 sm:px-10">
           <Link href="#top" className="flex items-center gap-3 no-underline">
-            <span className="flex h-[42px] w-[42px] items-center justify-center rounded-xl bg-[linear-gradient(150deg,#5a40f0,#4429d6)] shadow-[0_6px_16px_-4px_rgba(74,45,214,0.5)]">
-              <Wrench className="h-5 w-5 text-white" />
-            </span>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={brandName}
+                className="h-[42px] w-auto rounded-xl object-contain"
+              />
+            ) : (
+              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-xl bg-[image:var(--lp-grad)] shadow-[0_6px_16px_-4px_color-mix(in_srgb,var(--brand-700,#4429d6)_50%,transparent)]">
+                <Wrench className="h-5 w-5 text-white" />
+              </span>
+            )}
             <span className="flex flex-col leading-[1.05]">
               <span className="text-[19px] font-bold tracking-[-0.01em] text-[#1c2030]">
-                Dig-IT
+                {brandName}
               </span>
               <span
                 className={`${mono} mt-[3px] text-[9.5px] tracking-[0.14em] text-[#9298ab]`}
@@ -92,7 +123,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/register"
-              className="rounded-[11px] bg-[linear-gradient(150deg,#5a40f0,#4429d6)] px-[22px] py-2.5 text-[14.5px] font-bold text-white no-underline shadow-[0_6px_16px_-5px_rgba(74,45,214,0.55)] transition-all duration-150 hover:-translate-y-px hover:shadow-[0_10px_22px_-6px_rgba(74,45,214,0.6)] active:translate-y-0"
+              className="rounded-[11px] bg-[image:var(--lp-grad)] px-[22px] py-2.5 text-[14.5px] font-bold text-white no-underline shadow-[0_6px_16px_-5px_color-mix(in_srgb,var(--brand-700,#4429d6)_55%,transparent)] transition-all duration-150 hover:-translate-y-px hover:shadow-[0_10px_22px_-6px_color-mix(in_srgb,var(--brand-700,#4429d6)_60%,transparent)] active:translate-y-0"
             >
               Sign up
             </Link>
@@ -108,14 +139,14 @@ export default function LandingPage() {
         >
           <div className="mx-auto max-w-[760px] px-6 pb-24 pt-20 text-center sm:px-10 sm:pt-24">
             <span
-              className={`${mono} inline-flex items-center gap-[7px] rounded-full border border-[#ddd6ff] bg-[#ece9ff] px-[15px] py-[7px] text-[11px] font-bold tracking-[0.08em] text-[#4a2dd6]`}
+              className={`${mono} inline-flex items-center gap-[7px] rounded-full border border-[var(--brand-100,#ddd6ff)] bg-[var(--lp-tint)] px-[15px] py-[7px] text-[11px] font-bold tracking-[0.08em] text-[var(--brand-600,#4a2dd6)]`}
             >
               <ShieldCheck className="h-3.5 w-3.5" /> VETTED SPECIALISTS, ON DEMAND
             </span>
             <h1 className="mb-0 mt-[26px] text-[40px] font-extrabold leading-[1.04] tracking-[-0.03em] text-[#181b27] sm:text-[60px]">
               Something&apos;s down? We&apos;ll get a
               <br />
-              <span className="text-[#4f33ea]">specialist on it.</span>
+              <span className="text-[var(--lp-accent)]">specialist on it.</span>
             </h1>
             <p className="mx-auto mt-[26px] max-w-[620px] text-[18.5px] leading-[1.62] text-[#5a6276]">
               Dig-IT connects you with vetted IT specialists who fix outages
@@ -125,7 +156,7 @@ export default function LandingPage() {
             <div className="mt-[38px] flex flex-wrap justify-center gap-3.5">
               <Link
                 href="/register"
-                className="inline-flex items-center gap-[9px] rounded-[13px] bg-[linear-gradient(150deg,#5a40f0,#4429d6)] px-7 py-4 text-base font-bold text-white no-underline shadow-[0_12px_26px_-8px_rgba(74,45,214,0.6)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-10px_rgba(74,45,214,0.65)] active:translate-y-0"
+                className="inline-flex items-center gap-[9px] rounded-[13px] bg-[image:var(--lp-grad)] px-7 py-4 text-base font-bold text-white no-underline shadow-[0_12px_26px_-8px_color-mix(in_srgb,var(--brand-700,#4429d6)_60%,transparent)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-10px_color-mix(in_srgb,var(--brand-700,#4429d6)_65%,transparent)] active:translate-y-0"
               >
                 File your first outage <ArrowRight className="h-[18px] w-[18px]" />
               </Link>
@@ -154,10 +185,10 @@ export default function LandingPage() {
                   key={step.n}
                   className="relative rounded-[20px] border border-[#ebedf4] bg-[linear-gradient(180deg,#fbfbfe,#f6f7fb)] p-[30px] shadow-[0_1px_2px_rgba(20,24,40,0.03)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_-16px_rgba(40,44,80,0.22)]"
                 >
-                  <span className="absolute -top-[13px] left-[26px] flex h-7 w-7 items-center justify-center rounded-[9px] bg-[linear-gradient(150deg,#5a40f0,#4429d6)] text-[13px] font-bold text-white shadow-[0_6px_14px_-4px_rgba(74,45,214,0.55)]">
+                  <span className="absolute -top-[13px] left-[26px] flex h-7 w-7 items-center justify-center rounded-[9px] bg-[image:var(--lp-grad)] text-[13px] font-bold text-white shadow-[0_6px_14px_-4px_color-mix(in_srgb,var(--brand-700,#4429d6)_55%,transparent)]">
                     {step.n}
                   </span>
-                  <span className="mb-[22px] flex h-[50px] w-[50px] items-center justify-center rounded-[14px] bg-[linear-gradient(150deg,#5a40f0,#4429d6)] shadow-[0_8px_18px_-6px_rgba(74,45,214,0.45)]">
+                  <span className="mb-[22px] flex h-[50px] w-[50px] items-center justify-center rounded-[14px] bg-[image:var(--lp-grad)] shadow-[0_8px_18px_-6px_color-mix(in_srgb,var(--brand-700,#4429d6)_45%,transparent)]">
                     <step.icon className="h-[22px] w-[22px] text-white" />
                   </span>
                   <h3 className="mb-2.5 mt-0 text-[19px] font-bold tracking-[-0.01em] text-[#1c2030]">
@@ -188,8 +219,8 @@ export default function LandingPage() {
                   key={feature.title}
                   className="rounded-[18px] border border-[#ebedf4] bg-white p-[28px] shadow-[0_1px_2px_rgba(20,24,40,0.04)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_36px_-16px_rgba(40,44,80,0.2)]"
                 >
-                  <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-[13px] bg-[#eceaff]">
-                    <feature.icon className="h-5 w-5 text-[#4f33ea]" />
+                  <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-[13px] bg-[var(--lp-tint)]">
+                    <feature.icon className="h-5 w-5 text-[var(--lp-accent)]" />
                   </span>
                   <h3 className="mb-[9px] mt-0 text-[17px] font-bold tracking-[-0.01em] text-[#1c2030]">
                     {feature.title}
@@ -202,17 +233,17 @@ export default function LandingPage() {
             </div>
 
             {/* CTA banner */}
-            <div className="relative mt-[56px] overflow-hidden rounded-[26px] bg-[linear-gradient(150deg,#5733f2_0%,#4022e0_100%)] px-10 py-[70px] text-center shadow-[0_30px_60px_-24px_rgba(64,34,224,0.55)]">
+            <div className="relative mt-[56px] overflow-hidden rounded-[26px] bg-[image:var(--lp-grad-cta)] px-10 py-[70px] text-center shadow-[0_30px_60px_-24px_color-mix(in_srgb,var(--brand-700,#4022e0)_55%,transparent)]">
               <h2 className="m-0 text-[32px] font-extrabold tracking-[-0.025em] text-white sm:text-[38px]">
                 Ready when you are.
               </h2>
-              <p className="mx-auto mt-4 max-w-[560px] text-[17px] leading-[1.55] text-[#d9d3ff]">
+              <p className="mx-auto mt-4 max-w-[560px] text-[17px] leading-[1.55] text-[var(--brand-100,#d9d3ff)]">
                 Create your account and file your first outage in under a minute.
               </p>
               <div className="mt-[34px] flex flex-wrap justify-center gap-3.5">
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-[9px] rounded-xl bg-white px-[26px] py-[15px] text-[15.5px] font-bold text-[#3a23c8] no-underline shadow-[0_10px_24px_-10px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_-12px_rgba(0,0,0,0.4)] active:translate-y-0"
+                  className="inline-flex items-center gap-[9px] rounded-xl bg-white px-[26px] py-[15px] text-[15.5px] font-bold text-[var(--brand-700,#3a23c8)] no-underline shadow-[0_10px_24px_-10px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_-12px_rgba(0,0,0,0.4)] active:translate-y-0"
                 >
                   Get started <ArrowRight className="h-[17px] w-[17px]" />
                 </Link>
@@ -232,7 +263,7 @@ export default function LandingPage() {
       <footer className="bg-white px-6 py-[30px] sm:px-10">
         <div className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-3">
           <span className={`${mono} text-[11px] tracking-[0.1em] text-[#aab0c0]`}>
-            DIG-IT OPERATIONS PLATFORM © 2026
+            {brandName.toUpperCase()} OPERATIONS PLATFORM © 2026
           </span>
           <span
             className={`${mono} inline-flex items-center gap-2 text-[11px] tracking-[0.05em] text-[#aab0c0]`}
